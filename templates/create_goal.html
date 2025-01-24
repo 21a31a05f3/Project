@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Savings Goal</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5EFE7;
+            color: #213555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #FFFFFF;
+            padding: 40px 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #3E5879;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .flash-success {
+            background-color: lightgreen;
+            color: #155724;
+        }
+
+        .flash-error {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #213555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #D8C4B6;
+            border-radius: 5px;
+            background-color: #FFFFFF;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #3E5879;
+            outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: #213555;
+            color: #F5EFE7;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #3E5879;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #213555;
+            font-size: 0.9rem;
+            padding: 10px;
+            border: 1px solid #213555;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            background-color: #213555;
+            color: #F5EFE7;
+        }
+
+        #family_goal_section {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Savings Goal</h1>
+       
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message | safe }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('create_goal') }}" class="form">
+            <div class="form-group">
+                <label for="user_id">User ID:</label>
+                <input type="number" id="user_id" name="user_id" required>
+            </div>
+            <div class="form-group">
+                <label for="user_goal">User Goal Amount:</label>
+                <input type="number" id="user_goal" name="user_goal" step="1" required>
+            </div>
+            <div class="form-group">
+                <label for="deadline">Deadline (YYYY-MM-DD):</label>
+                <input type="date" id="deadline" name="deadline" required>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="create_family_goal" name="create_family_goal">
+                <label for="create_family_goal">I want to create a Family Goal (Admin only)</label>
+            </div>
+            <div id="family_goal_section" class="form-group">
+                <label for="family_goal">Family Goal Amount:</label>
+                <input type="number" id="family_goal" name="family_goal" step="1">
+            </div>
+            <button type="submit" class="btn">Create Goal</button>
+        </form>
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+
+    <script>
+        // Show/Hide family goal section based on checkbox
+        document.getElementById('create_family_goal').addEventListener('change', function () {
+            const familyGoalSection = document.getElementById('family_goal_section');
+            familyGoalSection.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Set minimum date to today for the deadline input
+        const deadlineInput = document.getElementById('deadline');
+        const today = new Date().toISOString().split('T')[0];
+        deadlineInput.setAttribute('min', today);
+    </script>
+</body>
+</html>

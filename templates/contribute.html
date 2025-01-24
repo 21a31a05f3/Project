@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Make Contribution</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5EFE7;
+            color: #213555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #3E5879;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .flash-message {
+            background-color: #D8C4B6;
+            color: #213555;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #D8C4B6;
+            border-radius: 5px;
+            background-color: #F8F8F8;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #3E5879;
+            outline: none;
+        }
+
+        .btn {
+            background-color: #213555;
+            color: #F5EFE7;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #3E5879;
+        }
+
+        .chart-container {
+            background-color: #FFFFFF;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #jointGoalSelect {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .contribution-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #F8F8F8;
+            border-radius: 5px;
+        }
+
+        .stat-item {
+            padding: 8px;
+            border-bottom: 1px solid #D8C4B6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Make Contribution</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message" style="background-color: {{ 'lightgreen' if category == 'success' else '#F8D7DA' }}; color: {{ '#155724' if category == 'success' else '#721C24' }}">
+                    {{ message | safe }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <form id="contributionForm" method="POST" class="form">
+            <div class="form-group">
+                <label for="user_id">User ID:</label>
+                <input type="number" id="user_id" name="user_id" min="1" required placeholder="Enter your User ID">
+            </div>
+            <div class="form-group">
+                <label for="contribution_type">Contribution Type:</label>
+                <select id="contribution_type" name="contribution_type" required>
+                    <option value="user">User Goal</option>
+                    <option value="family">Family Goal</option>
+                </select>
+            </div>
+            <div class="form-group" id="jointGoalSelect">
+                <label for="joint_id">Select Joint Goal:</label>
+                <select id="joint_id" name="joint_id">
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" min="0" step="0.01" required placeholder="Enter contribution amount">
+                <div class="info-text">Note: Amount should be a positive number.</div>
+            </div>
+            <button type="submit" class="btn">Make Contribution</button>
+        </form>
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+
+    <div class="chart-container" id="chartContainer">
+        <canvas id="contributionChart"></canvas>
+        <div class="contribution-stats" id="contributionStats"></div>
+    </div>
+
+    <script>
+        let currentChart = null;
+
+        async function checkJointGoals(userId) {
+            try {
+                const response = await fetch(`/get_joint_goals/${userId}`);
+                const data = await response.json();
+                
+                const jointGoalSelect = document.getElementById('jointGoalSelect');
+                const jointIdSelect = document.getElementById('joint_id');
+                const contributionType = document.getElementById('contribution_type');
+                
+                // Clear existing options
+                jointIdSelect.innerHTML = '';
+                
+                if (data.goals && data.goals.length > 0) {
+                    // Add joint goal option if user has joint goals
+                    if (!Array.from(contributionType.options).some(option => option.value === 'joint')) {
+                        const jointOption = new Option('Joint Goal', 'joint');
+                        contributionType.add(jointOption);
+                    }
+                    
+                        data.goals.forEach(goal => {
+                        const option = new Option(
+                            `Goal: Rs ${goal.joint_goal_amount} (Remaining: Rs ${goal.joint_target_amount})`,
+                            goal.joint_id
+                        );
+                        jointIdSelect.add(option);
+                    });
+                } else {
+                    // Remove joint goal option if user has no joint goals
+                    Array.from(contributionType.options).forEach(option => {
+                        if (option.value === 'joint') {
+                            contributionType.remove(option.index);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking joint goals:', error);
+            }
+        }
+
+        async function updateChart(type, id) {
+            const container = document.getElementById('chartContainer');
+            const stats = document.getElementById('contributionStats');
+            
+            try {
+                let endpoint;
+                if (type === 'family') {
+                    endpoint = `/get_family_contributions/${id}`;
+                } else if (type === 'joint') {
+                    endpoint = `/get_joint_contributions/${id}`;
+                } else {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                const response = await fetch(endpoint);
+                const data = await response.json();
+
+                if (currentChart) {
+                    currentChart.destroy();
+                }
+
+                container.style.display = 'block';
+                const ctx = document.getElementById('contributionChart').getContext('2d');
+                
+                let chartData;
+                if (type === 'family') {
+                    chartData = {
+                        labels: data.users.map(user => user.name || `User ${user.user_id}`),
+                        datasets: [{
+                            data: data.users.map(user => user.contribution),
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40']
+                        }]
+                    };
+                    stats.innerHTML = `
+                        <div class="stat-item">Total Family Goal: Rs ${data.family_goal.toFixed(2)}</div>
+                        <div class="stat-item">Total Contributed: Rs ${data.total_contributed.toFixed(2)}</div>
+                        <div class="stat-item">Remaining Goal: Rs ${data.remaining.toFixed(2)}</div>
+                        <div class="stat-item">Progress: ${Math.round(data.progress)}%</div>
+                    `;
+                } else {
+                    chartData = {
+                        labels: data.participants.map(p => p.name),
+                        datasets: [{
+                            data: data.participants.map(p => p.contribution),
+                            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                        }]
+                    };
+                    stats.innerHTML = `
+                        <div class="stat-item">Total Joint Goal: Rs ${data.joint_goal_amount.toFixed(2)}</div>
+                        <div class="stat-item">Total Contributed: Rs ${data.total_contributed.toFixed(2)}</div>
+                        <div class="stat-item">Remaining Goal: Rs ${data.remaining.toFixed(2)}</div>
+                        <div class="stat-item">Progress: ${Math.round(data.progress)}%</div>
+                    `;
+                }
+
+                currentChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: type === 'family' ? 'Family Goal Contributions' : 'Joint Goal Contributions'
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error updating chart:', error);
+                stats.innerHTML = '<div class="stat-item">Error loading contribution data</div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('contributionForm');
+            const contributionType = document.getElementById('contribution_type');
+            const userId = document.getElementById('user_id');
+            const jointGoalSelect = document.getElementById('jointGoalSelect');
+
+            userId.addEventListener('change', function() {
+                checkJointGoals(this.value);
+                if (contributionType.value === 'family') {
+                    updateChart('family', this.value);
+                }
+            });
+
+            contributionType.addEventListener('change', function() {
+                const showJointSelect = this.value === 'joint';
+                jointGoalSelect.style.display = showJointSelect ? 'block' : 'none';
+                
+                if (this.value === 'family' && userId.value) {
+                    updateChart('family', userId.value);
+                } else if (this.value === 'joint' && document.getElementById('joint_id').value) {
+                    updateChart('joint', document.getElementById('joint_id').value);
+                } else {
+                    document.getElementById('chartContainer').style.display = 'none';
+                }
+            });
+
+            document.getElementById('joint_id').addEventListener('change', function() {
+                if (contributionType.value === 'joint') {
+                    updateChart('joint', this.value);
+                }
+            });
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                try {
+                    const response = await fetch('/contribute', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.text();
+                    const [status, ...messageParts] = result.split(':');
+                    const message = messageParts.join(':');
+
+                    const flashMessage = document.createElement('div');
+                    flashMessage.className = 'flash-message';
+                    
+                    if (status === 'SUCCESS') {
+                        flashMessage.style.backgroundColor = 'lightgreen';
+                        flashMessage.style.color = '#155724';
+                        flashMessage.textContent = message;
+                        
+                        // Update chart if needed
+                        const type = formData.get('contribution_type');
+                        if (type === 'family') {
+                            updateChart('family', formData.get('user_id'));
+                        } else if (type === 'joint') {
+                            updateChart('joint', formData.get('joint_id'));
+                        }
+                    } else {
+                        flashMessage.style.backgroundColor = '#F8D7DA';
+                        flashMessage.style.color = '#721C24';
+                        flashMessage.textContent = message;
+                    }
+                    
+                    form.insertBefore(flashMessage, form.firstChild);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

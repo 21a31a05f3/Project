@@ -1,0 +1,160 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Family Finance Tracker</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background-color: #F5EFE7;
+            color: #213555;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Title at the Top */
+        .header {
+            padding: 20px 0;
+            background-color: #3E5879;
+            color: #F5EFE7;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        /* Saving Goals Section */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        .main-content h2 {
+            font-size: 3rem;
+            color: #213555;
+            margin-bottom: 20px;
+        }
+
+        /* Menu Styling */
+        .menu {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: slideIn 1s ease-out;
+        }
+
+        .menu-item {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #F5EFE7;
+            background-color: #213555;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item:hover {
+            background-color: #3E5879;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer at the Bottom */
+        .footer {
+            text-align: center;
+            padding: 15px 0;
+            font-size: 0.9rem;
+            color: #3E5879;
+            background-color: #D8C4B6;
+        }
+
+        .footer span {
+            font-weight: bold;
+            color: #213555;
+        }
+
+        /* Animation Keyframes */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content h2 {
+                font-size: 2rem;
+            }
+
+            .menu-item {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-item {
+                font-size: 0.9rem;
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Title at the Top -->
+    <div class="header">
+        <h1>Unified Family Finance Tracker</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h2>Saving Goals</h2>
+        <div class="menu">
+            <a href="{{ url_for('create_goal') }}" class="menu-item">Create Savings Goal</a>
+            <a href="{{ url_for('contribute') }}" class="menu-item">Make Contribution</a>
+            <a href="{{ url_for('display_goals') }}" class="menu-item">View Goals</a>
+            <a href="{{ url_for('update_goal') }}" class="menu-item">Update Goals</a>
+            <a href="{{ url_for('create_joint_goal') }}" class="menu-item">Create Joint Goal</a>
+        </div>
+    </div>
+
+    <!-- Footer at the Bottom -->
+    </body>
+</html>

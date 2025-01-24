@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Joint Goal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Include specific styles for this page */
+        .create-joint-goal-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        body{
+            background-color: #F5EFE7;
+        }
+        .create-joint-goal-container h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .flash-success {
+            background-color: lightgreen;
+            color: #155724;
+        }
+
+        .flash-error {
+            background-color: #F8D7DA;
+            color: #721C24;
+        }
+
+        .create-joint-goal-container .form-group {
+            margin-bottom: 20px;
+        }
+
+        .create-joint-goal-container label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #213555;
+        }
+        .create-joint-goal-container h1 {
+            color: #3E5879;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .create-joint-goal-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .create-joint-goal-container .btn {
+            background-color: #213555;
+            color: #F5EFE7;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .create-joint-goal-container .btn:hover {
+            background-color: #3E5879;
+        }
+
+        .create-joint-goal-container .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #213555;
+            font-size: 0.9rem;
+            padding: 10px;
+            border: 1px solid #213555;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .create-joint-goal-container .back-link:hover {
+            background-color: #213555;
+            color: #F5EFE7;
+        }
+    </style>
+</head>
+<body>
+    <div class="create-joint-goal-container">
+        <h1><b>Create a Joint Savings Goal</b></h1>
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message | safe }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('create_joint_goal') }}">
+            {% if not family_id %}
+                <div class="form-group">
+                    <label for="family_id">Enter Family ID:</label>
+                    <input type="number" id="family_id" name="family_id" required>
+                </div>
+                <button type="submit" class="btn">Fetch Users</button>
+            {% elif users %}
+                <input type="hidden" name="family_id" value="{{ family_id }}">
+                <div class="form-group">
+                    <p>Select Users:</p>
+                    {% for user in users %}
+                        <div>
+                            <input type="checkbox" id="user_{{ user.user_id }}" name="user_ids" value="{{ user.user_id }}">
+                            <label for="user_{{ user.user_id }}">{{ user.name }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    <label for="joint_goal">Joint Goal Amount:</label>
+                    <input type="number" id="joint_goal" name="joint_goal" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="deadline">Deadline:</label>
+                    <input type="date" id="deadline" name="deadline" required>
+                </div>
+                <button type="submit" class="btn">Create Joint Goal</button>
+            {% endif %}
+        </form>
+        
+        
+        <a href="{{ url_for('index') }}" class="back-link">Back to Home</a>
+    </div>
+</body>
+</html>
